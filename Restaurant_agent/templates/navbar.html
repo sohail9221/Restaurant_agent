@@ -1,0 +1,41 @@
+
+<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom mb-4 shadow-sm">
+  <div class="container-fluid">
+    <a class="navbar-brand d-flex align-items-center fw-bold" href="{{ url_for('dashboard') }}">
+      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-mortarboard-fill me-2" viewBox="0 0 16 16">
+        <path d="M8.211 2.047a.5.5 0 0 0-.422 0l-7.5 3.5a.5.5 0 0 0 .025.917l7.5 3a.5.5 0 0 0 .372 0L14 7.14V13a1 1 0 0 0-1 1v2h3v-2a1 1 0 0 0-1-1V6.739l.686-.275a.5.5 0 0 0 .025-.917l-7.5-3.5Z"/>
+        <path d="M4.176 9.032a.5.5 0 0 0-.656.327l-.5 1.7a.5.5 0 0 0 .294.605l4.5 1.8a.5.5 0 0 0 .372 0l4.5-1.8a.5.5 0 0 0 .294-.605l-.5-1.7a.5.5 0 0 0-.656-.327L8 10.466 4.176 9.032Z"/>
+      </svg>
+      TeleAI
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+      <ul class="navbar-nav mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link {% if active_page == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">Dashboard</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if active_page == 'orders' %}active{% endif %}" href="{{ url_for('orders') }}">Orders</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if active_page == 'reservations' %}active{% endif %}" href="{{ url_for('reservations') }}">Reservations</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if active_page == 'customers' %}active{% endif %}" href="{{ url_for('customers') }}">Customers</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if active_page == 'marketing_call' %}active{% endif %}" href="{{ url_for('marketing_call') }}">Marketing Call</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if active_page == 'orders_and_reservations' %}active{% endif %}" href="{{ url_for('orders_and_reservations') }}">Recent Orders</a>
+        </li>
+      </ul>
+      {% if role == 'admin' %}
+      <a href="{{ url_for('create_user') }}" class="btn btn-danger text-white me-2">Create User</a>
+      {% endif %}
+      <a href="{{ url_for('feedback') }}" class="btn btn-outline-secondary me-2">Feedback</a>
+    </div>
+  </div>
+</nav>
