@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if role == 'admin' %}Admin Dashboard{% else %}User Dashboard{% endif %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Arial', sans-serif;
+        }
+        .main-content {
+            padding: 20px;
+        }
+        .stats-card {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .chart-container {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            height: 400px; /* Fixed height for the chart container */
+            overflow: hidden; /* Prevent overflow */
+        }
+        canvas {
+            max-width: 100%;
+            height: 100% !important; /* Ensure canvas fills the container */
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+
+    {% include 'navbar.html' %}
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="main-content">
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="stats-number" id="total-orders">0</div>
+                                <div class="stats-label">Total Orders</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="stats-number" id="total-revenue">$0</div>
+                                <div class="stats-label">Total Revenue</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="stats-number" id="total-reservations">0</div>
+                                <div class="stats-label">Reservations</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <div class="stats-number" id="average-rating">0/5</div>
+                                <div class="stats-label">Customer Rating</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="chart-container">
+                                <h5>Sales Trends</h5>
+                                <canvas id="salesChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="chart-container">
+                                <h5>Order Status</h5>
+                                <canvas id="orderStatusChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="table-container">
+                                <h5>Recent Orders</h5>
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Order ID</th>
+                                            <th>Customer</th>
+                                            <th>Status</th>
+                                            <th>Total Price</th>
+                                            <th>Payment Method</th>
+                                            <th>Items</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recent-orders-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function fetchData(url) {
+            try {
+                const response = await fetch(url);
+                return await response.json();
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                return null;
+            }
+        }
+
+        async function updateStats() {
+            const stats = await fetchData('/api/dashboard/stats');
+            if (stats) {
+                document.getElementById('total-orders').textContent = stats.total_orders;
+                document.getElementById('total-revenue').textContent = `$${stats.total_revenue}`;
+                document.getElementById('total-reservations').textContent = stats.total_reservations;
+                document.getElementById('average-rating').textContent = `${stats.average_rating}/5`;
+            }
+        }
+
+        async function updateOrdersTable() {
+            const orders = await fetchData('/api/dashboard/recent-orders');
+            const tbody = document.getElementById('recent-orders-body');
+            tbody.innerHTML = '';
+            orders.forEach(order => {
+                tbody.innerHTML += `<tr><td>${order.id}</td><td>${order.name}</td><td>${order.status}</td><td>$${order.total_price}</td><td>${order.payment_method}</td><td>${order.ordered_items}</td></tr>`;
+            });
+        }
+
+        // Initialize Charts
+        const salesChartCtx = document.getElementById('salesChart').getContext('2d');
+        const orderStatusChartCtx = document.getElementById('orderStatusChart').getContext('2d');
+
+        const salesChart = new Chart(salesChartCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                datasets: [{
+                    label: 'Sales',
+                    data: [65, 59, 80, 81, 56, 55, 40],
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, // Prevent aspect ratio from affecting height
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        const orderStatusChart = new Chart(orderStatusChartCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Completed', 'Pending', 'Cancelled'],
+                datasets: [{
+                    label: 'Order Status',
+                    data: [300, 50, 100],
+                    backgroundColor: [
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(255, 99, 132, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(255, 99, 132, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false // Prevent aspect ratio from affecting height
+            }
+        });
+
+        setInterval(updateStats, 5000);
+        setInterval(updateOrdersTable, 5000);
+    </script>
+</body>
+</html>
